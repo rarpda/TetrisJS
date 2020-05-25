@@ -86,6 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
             squares[i].removeAttribute("class");
             squares[i].style.backgroundColor="yellow";
         }   
+        startBtn.innerHTML = "Stop";
+        playBtn.disabled = false;
+        playBtn.innerHTML = "Pause"
     }
 
     //draw piece
@@ -217,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkCollision();
     }
 
-
+    const playBtn = document.getElementById("pause-button");
 
     startBtn.addEventListener('click', () => {
         if (timerId) {
@@ -225,14 +228,34 @@ document.addEventListener("DOMContentLoaded", () => {
             startBtn.innerHTML = "Start";
             clearInterval(timerId)
             timerId = null;
+            playBtn.disabled = true;
+            playBtn.innerHTML = "Play"
         } else {
+
             initGame();
             document.addEventListener('keydown', control);
             draw()
             timerId = setInterval(moveDown, time)
             nextRandom = Math.floor(Math.random() * theTetraminoes.length)
             displayShape()
-            startBtn.innerHTML = "Stop";
+  
+        }
+    })
+
+
+    /* Add play/pause button */
+    playBtn.addEventListener('click', () => {
+        /*Running -> Pause*/
+        if (timerId) {
+            clearInterval(timerId)
+            document.removeEventListener("keydown", control);
+            playBtn.innerHTML = "Play";
+            timerId = null;
+        } else {
+            /*Paused -> Run*/
+            document.addEventListener('keydown', control);
+            timerId = setInterval(moveDown, time)
+            playBtn.innerHTML = "Pause";
         }
     })
 
@@ -257,7 +280,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function gameOver() {
         if (current.some(index => squares[currentPosition + index].classList.contains('taken'))) {
-            ScoreDisplay.innerHTML = 'Game Over'
+            ScoreDisplay.innerHTML = 'Game Over';
+            playBtn.disabled = true;
+            startBtn.innerHTML = "Start";
+            document.removeEventListener("keydown", control);
+            console.log("reached");
             clearInterval(timerId)
         }
     }
