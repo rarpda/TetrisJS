@@ -43,6 +43,7 @@ const colors = ['orange', 'red', 'purple', 'green', 'blue']
 const displayWidth = 4
 let displayIndex = 0
 let time = 1000;
+let currentTime = 0;
 
 //without rotations
 const upNextTetrominoes = [
@@ -54,6 +55,8 @@ const upNextTetrominoes = [
 ]
 
 document.addEventListener("DOMContentLoaded", () => {
+    let timerInterval = null;
+
     const grid = document.querySelector(".grid")
     let squares = Array.from(document.querySelectorAll(".grid div"))
     const ScoreDisplay = document.querySelector('#score')
@@ -64,17 +67,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let timerId = null;
     let score, currentPosition, currentRotation;
     let currentPieceIndex, current, colour;
-
+    const timerObject = document.getElementById("timer")
+    
     function initGame() {
         score = 0;
         time = 500;
-
         ScoreDisplay.innerHTML = 0;
-
         currentPosition = 4;
         currentRotation = 0;
         score = 0;
-
         currentPieceIndex = Math.floor(Math.random() * theTetraminoes.length);
         current = theTetraminoes[currentPieceIndex][currentRotation];
         colour = colors[currentPieceIndex];
@@ -82,13 +83,22 @@ document.addEventListener("DOMContentLoaded", () => {
         /*Setup next Random */
         nextRandom = Math.floor(Math.random() * theTetraminoes.length);
 
-        for(let i = 0; i <200; i++){
+        for (let i = 0; i < 200; i++) {
             squares[i].removeAttribute("class");
-            squares[i].style.backgroundColor="yellow";
-        }   
+            squares[i].style.backgroundColor = "yellow";
+        }
         startBtn.innerHTML = "Stop";
-        playBtn.disabled = false;
-        playBtn.innerHTML = "Pause"
+        playBtn.innerHTML = "Pause";
+        currentTime = 0;
+        timerInterval = setInterval(timerIncrement, 1000)
+    }
+
+    function timerIncrement() {
+        currentTime++;
+        let minutes = Math.floor(currentTime / 60);
+        let seconds = (currentTime % 60);
+        timerObject.innerHTML = " " + minutes + ":" + seconds;
+        
     }
 
     //draw piece
@@ -145,12 +155,12 @@ document.addEventListener("DOMContentLoaded", () => {
             colour = colors[currentPieceIndex];
             currentPosition = 4
 
-            if(time > 800){
-                time-=5;
-            } else{
+            if (time > 800) {
+                time -= 5;
+            } else {
                 time = 800;
             }
-            clearInterval( timerId)
+            clearInterval(timerId)
             timerId = setInterval(moveDown, time)
             draw();
             displayShape();
@@ -192,13 +202,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //rotate the tetromine
     function rotate() {
-        if(currentPieceIndex == 4){
-            if(((currentPosition % 10) > 6) || ((currentPosition % 10) < 0)){
+        if (currentPieceIndex == 4) {
+            if (((currentPosition % 10) > 6) || ((currentPosition % 10) < 0)) {
                 return;
             }
         }
-        else{
-            if( ((currentPosition % 10) > 7) || ((currentPosition % 10) <0)){
+        else {
+            if (((currentPosition % 10) > 7) || ((currentPosition % 10) < 0)) {
                 return;
             }
         }
@@ -210,35 +220,39 @@ document.addEventListener("DOMContentLoaded", () => {
         //Check if it will clash with other parts
         nextPosition = theTetraminoes[currentPieceIndex][nextRotation]
         let willConflict = nextPosition.some(index => squares[currentPosition + index].classList.contains("taken"))
-        if(willConflict){
+        if (willConflict) {
             return;
         }
         undraw();
         currentRotation = nextRotation;
-        current  = nextPosition
+        current = nextPosition
         draw()
         checkCollision();
     }
 
-    const playBtn = document.getElementById("pause-button");
+    const playBtn = document.getElementById("pause-button")
 
     startBtn.addEventListener('click', () => {
         if (timerId) {
+            /*Stopped */
             document.removeEventListener("keydown", control);
             startBtn.innerHTML = "Start";
             clearInterval(timerId)
+            clearInterval(timerInterval)
             timerId = null;
             playBtn.disabled = true;
             playBtn.innerHTML = "Play"
         } else {
-
+            /*Start */
             initGame();
+            playBtn.disabled = false;
             document.addEventListener('keydown', control);
             draw()
             timerId = setInterval(moveDown, time)
+
             nextRandom = Math.floor(Math.random() * theTetraminoes.length)
             displayShape()
-  
+
         }
     })
 
@@ -246,15 +260,16 @@ document.addEventListener("DOMContentLoaded", () => {
     /* Add play/pause button */
     playBtn.addEventListener('click', () => {
         /*Running -> Pause*/
-        if (timerId) {
+        if (playBtn.innerHTML === "Pause") {
+            clearInterval(timerInterval)
             clearInterval(timerId)
             document.removeEventListener("keydown", control);
             playBtn.innerHTML = "Play";
-            timerId = null;
         } else {
             /*Paused -> Run*/
             document.addEventListener('keydown', control);
             timerId = setInterval(moveDown, time)
+            timerInterval = setInterval(timerIncrement, 1000)
             playBtn.innerHTML = "Pause";
         }
     })
@@ -284,8 +299,10 @@ document.addEventListener("DOMContentLoaded", () => {
             playBtn.disabled = true;
             startBtn.innerHTML = "Start";
             document.removeEventListener("keydown", control);
-            console.log("reached");
             clearInterval(timerId)
+            clearInterval(timerInterval)
+            startBtn.innerHTML = "Start"
+            timerId = null;
         }
     }
 
