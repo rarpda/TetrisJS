@@ -85,8 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         for(let i = 0; i <200; i++){
             squares[i].removeAttribute("class");
             squares[i].style.backgroundColor="yellow";
-        }
-        
+        }   
     }
 
     //draw piece
@@ -111,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
     //clear piece
     function undraw() {
         current.forEach(index => {
-          //  squares[currentPosition + index].classList.remove('tetromino')
             squares[currentPosition + index].removeAttribute("class")
             squares[currentPosition + index].removeAttribute("style")
         })
@@ -137,13 +135,20 @@ document.addEventListener("DOMContentLoaded", () => {
             current.forEach(index => squares[currentPosition + index].classList.add('taken'))
 
             //Draw new piece
-            random = nextRandom;
+            currentPieceIndex = nextRandom;
             currentRotation = 0;
             nextRandom = Math.floor(Math.random() * theTetraminoes.length);
-            current = theTetraminoes[random][currentRotation];
-            colour = colors[random];
+            current = theTetraminoes[currentPieceIndex][currentRotation];
+            colour = colors[currentPieceIndex];
             currentPosition = 4
 
+            if(time > 800){
+                time-=5;
+            } else{
+                time = 800;
+            }
+            clearInterval( timerId)
+            timerId = setInterval(moveDown, time)
             draw();
             displayShape();
             addScore();
@@ -184,13 +189,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //rotate the tetromine
     function rotate() {
-        undraw();
-        currentRotation++
-        if (currentRotation === current.length) {
-            currentRotation = 0;
+        if(currentPieceIndex == 4){
+            if(((currentPosition % 10) > 6) || ((currentPosition % 10) < 0)){
+                return;
+            }
         }
-        current = theTetraminoes[random][currentRotation]
+        else{
+            if( ((currentPosition % 10) > 7) || ((currentPosition % 10) <0)){
+                return;
+            }
+        }
+
+        let nextRotation = currentRotation + 1;
+        if (nextRotation === current.length) {
+            nextRotation = 0;
+        }
+        //Check if it will clash with other parts
+        nextPosition = theTetraminoes[currentPieceIndex][nextRotation]
+        let willConflict = nextPosition.some(index => squares[currentPosition + index].classList.contains("taken"))
+        if(willConflict){
+            return;
+        }
+        undraw();
+        currentRotation = nextRotation;
+        current  = nextPosition
         draw()
+        checkCollision();
     }
 
 
