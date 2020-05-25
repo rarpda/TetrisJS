@@ -91,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
         playBtn.innerHTML = "Pause";
         currentTime = 0;
         timerInterval = setInterval(timerIncrement, 1000)
+        timerObject.innerHTML = 0 + ":" + 0;
     }
 
     function timerIncrement() {
